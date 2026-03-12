@@ -1,0 +1,12 @@
+{
+  "name": "tvfest-proxy",
+  "version": "1.0.0",
+  "description": "vFairs API proxy for TVFEST dashboard",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

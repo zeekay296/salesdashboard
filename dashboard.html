@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TVFEST · Sales Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:       #07090f;
+  --surface:  #0f1420;
+  --surface2: #151d2e;
+  --border:   #1c2a42;
+  --accent:   #00e5a0;
+  --blue:     #3b8efd;
+  --orange:   #ff7b3a;
+  --purple:   #b57bff;
+  --red:      #ff4f6b;
+  --text:     #e8eeff;
+  --muted:    #5a6d8a;
+  --muted2:   #8a9ab8;
+}
+
+body {
+  font-family: 'DM Mono', monospace;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: radial-gradient(circle, rgba(0,229,160,0.07) 1px, transparent 1px);
+  background-size: 32px 32px;
+  pointer-events: none; z-index: 0;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  top: -200px; left: 50%; transform: translateX(-50%);
+  width: 900px; height: 500px;
+  background: radial-gradient(ellipse, rgba(0,229,160,0.07) 0%, transparent 70%);
+  pointer-events: none; z-index: 0;
+}
+
+.page {
+  position: relative; z-index: 1;
+  max-width: 1280px; margin: 0 auto;
+  padding: 52px 36px 100px;
+}
+
+/* ── Header ── */
+.topbar {
+  display: flex; align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 56px; gap: 20px; flex-wrap: wrap;
+}
+.brand { display: flex; flex-direction: column; gap: 6px; }
+.brand-name {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(32px, 5vw, 58px); font-weight: 800;
+  letter-spacing: -2px; line-height: 1;
+  background: linear-gradient(120deg, #fff 0%, var(--accent) 50%, var(--blue) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.brand-sub { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 4px; }
+.header-right { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.pill {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 100px; padding: 9px 18px;
+  font-size: 11px; color: var(--muted2); letter-spacing: .5px;
+}
+.dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.dot.green  { background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+.dot.red    { background: var(--red);    box-shadow: 0 0 8px var(--red); }
+.dot.pulse  { animation: blink 1.8s ease infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+.refresh-btn {
+  background: transparent; border: 1px solid var(--border);
+  color: var(--muted2); font-family: 'DM Mono', monospace;
+  font-size: 11px; padding: 9px 18px; border-radius: 100px;
+  cursor: pointer; letter-spacing: 1px; transition: all .2s;
+}
+.refresh-btn:hover { border-color: var(--accent); color: var(--accent); }
+.refresh-btn:disabled { opacity: .4; cursor: not-allowed; }
+
+/* ── KPI grid ── */
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 18px; margin-bottom: 24px;
+}
+.kpi {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 18px; padding: 28px 26px 22px;
+  position: relative; overflow: hidden; cursor: default;
+  transition: transform .22s ease, border-color .22s ease, box-shadow .22s ease;
+  animation: fadeUp .5s ease both;
+}
+.kpi::before { content:''; position:absolute; top:0;left:0;right:0; height:2px; background:var(--c,var(--accent)); }
+.kpi::after  { content:''; position:absolute; top:-80px;right:-80px; width:220px;height:220px; border-radius:50%; background:var(--c,var(--accent)); opacity:.04; transition:opacity .3s; }
+.kpi:hover   { transform:translateY(-4px); border-color:var(--c,var(--accent)); box-shadow:0 12px 40px rgba(0,0,0,.4); }
+.kpi:hover::after { opacity:.1; }
+.kpi.a{--c:var(--accent)} .kpi.b{--c:var(--blue)} .kpi.c{--c:var(--orange)} .kpi.d{--c:var(--purple)}
+.kpi:nth-child(1){animation-delay:.04s} .kpi:nth-child(2){animation-delay:.09s}
+.kpi:nth-child(3){animation-delay:.14s} .kpi:nth-child(4){animation-delay:.19s}
+.kpi-label { font-size:9.5px; text-transform:uppercase; letter-spacing:3px; color:var(--muted); margin-bottom:14px; font-weight:500; }
+.kpi-num   { font-family:'Syne',sans-serif; font-size:clamp(30px,3.8vw,44px); font-weight:800; letter-spacing:-1.5px; color:var(--c,var(--accent)); line-height:1; }
+.kpi-sub   { margin-top:8px; font-size:11px; color:var(--muted); }
+.kpi-icon  { position:absolute; bottom:18px;right:22px; font-size:26px; opacity:.12; transition:opacity .2s; }
+.kpi:hover .kpi-icon { opacity:.22; }
+
+/* ── Card ── */
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 18px; padding: 34px; margin-bottom: 22px;
+  animation: fadeUp .5s .22s ease both;
+}
+.card-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 28px; gap: 12px; flex-wrap: wrap;
+}
+.card-title {
+  font-family:'Syne',sans-serif; font-size:13px; font-weight:700;
+  text-transform:uppercase; letter-spacing:2.5px; color:var(--muted2);
+  display:flex; align-items:center; gap:10px;
+}
+.card-title::before { content:''; width:5px;height:5px; background:var(--accent); border-radius:50%; box-shadow:0 0 8px var(--accent); flex-shrink:0; }
+.total-badge { font-size:11px; color:var(--muted); background:var(--surface2); border:1px solid var(--border); border-radius:100px; padding:5px 14px; }
+
+.pkg-list { display:flex; flex-direction:column; gap:16px; }
+.pkg-item { display:grid; grid-template-columns:1fr 200px 60px 56px; align-items:center; gap:16px; padding:12px 0; border-bottom:1px solid var(--border); }
+.pkg-item:last-child { border-bottom:none; }
+.pkg-name  { font-size:13px; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.bar-wrap  { height:5px; background:var(--border); border-radius:100px; overflow:hidden; }
+.bar-fill  { height:100%; border-radius:100px; background:linear-gradient(90deg,var(--accent),var(--blue)); transition:width 1.2s cubic-bezier(.16,1,.3,1); width:0; }
+.pkg-pct   { font-size:11px; color:var(--muted); text-align:right; }
+.pkg-count { font-family:'Syne',sans-serif; font-size:20px; font-weight:700; color:var(--accent); text-align:right; }
+
+/* ── Loading / error ── */
+#status-area { padding:80px 0; text-align:center; }
+.spinner { width:40px;height:40px; border:2px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin .75s linear infinite; margin:0 auto 20px; }
+@keyframes spin { to{transform:rotate(360deg)} }
+.status-msg { font-size:12px; color:var(--muted); letter-spacing:1px; }
+.status-log { margin-top:10px; font-size:11px; color:var(--muted); font-style:italic; }
+
+.err-box { background:rgba(255,79,107,.05); border:1px solid rgba(255,79,107,.25); border-radius:14px; padding:28px 32px; text-align:left; max-width:620px; margin:0 auto; }
+.err-box h3 { font-family:'Syne',sans-serif; font-size:16px; font-weight:700; color:#ff8099; margin-bottom:14px; }
+.err-box p  { font-size:12px; color:var(--muted2); line-height:1.9; }
+.err-box code { display:inline-block; background:rgba(255,255,255,.05); border-radius:5px; padding:1px 7px; font-size:11px; color:#ffb3c2; }
+
+.btn-row { display:flex; gap:10px; margin-top:18px; flex-wrap:wrap; }
+.btn { display:inline-flex; align-items:center; gap:6px; background:transparent; border:1px solid var(--accent); color:var(--accent); font-family:'DM Mono',monospace; font-size:11px; padding:10px 22px; border-radius:8px; cursor:pointer; letter-spacing:1px; text-decoration:none; transition:all .2s; }
+.btn:hover { background:var(--accent); color:var(--bg); }
+
+.ts { text-align:center; font-size:11px; color:var(--muted); margin-top:44px; letter-spacing:.5px; }
+@keyframes fadeUp { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
+
+@media(max-width:700px){ .page{padding:32px 18px 60px} .pkg-item{grid-template-columns:1fr auto auto} .bar-wrap{display:none} }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-name">TVFEST</div>
+      <div class="brand-sub">Sales &amp; Financial Dashboard</div>
+    </div>
+    <div class="header-right">
+      <div class="pill" id="conn-pill">
+        <span class="dot red" id="conn-dot"></span>
+        <span id="conn-label">Connecting…</span>
+      </div>
+      <button class="refresh-btn" id="refresh-btn" onclick="loadData()" disabled>↻ Refresh</button>
+    </div>
+  </div>
+
+  <div id="main">
+    <div id="status-area">
+      <div class="spinner"></div>
+      <div class="status-msg">Connecting to vFairs API…</div>
+      <div class="status-log" id="log-msg">Fetching live data</div>
+    </div>
+  </div>
+  <p class="ts" id="ts"></p>
+</div>
+
+<script>
+  // !! Replace this with your Railway URL after deploying server.js !!
+  const PROXY = 'https://YOUR-RAILWAY-URL.up.railway.app';
+
+  function parseNum(v){ if(v==null)return 0; const n=parseFloat(String(v).replace(/[^0-9.\-]/g,'')); return isNaN(n)?0:n; }
+  function fmtMoney(n){ return n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+
+  function render(attendees){
+    const active = attendees.filter(a=>a.status==='Active');
+    const totalTickets = active.length;
+    const totalRevenue = attendees.reduce((s,a)=>s+parseNum(a.net_total),0);
+    const totalVAT     = attendees.reduce((s,a)=>s+parseNum(a.total_vat),0);
+    const grossTotal   = attendees.reduce((s,a)=>s+parseNum(a.gross_total),0);
+
+    const pkgMap={};
+    active.forEach(a=>{ const p=(a.package_name||'Unknown').trim()||'Unknown'; pkgMap[p]=(pkgMap[p]||0)+1; });
+    const pkgs=Object.entries(pkgMap).sort((a,b)=>b[1]-a[1]);
+    const maxPkg=pkgs[0]?.[1]||1;
+
+    let cur='';
+    for(const a of attendees){ const m=String(a.gross_total||'').match(/[^\d\s.,\-eE]+/); if(m){cur=m[0];break;} }
+
+    document.getElementById('conn-dot').className='dot green pulse';
+    document.getElementById('conn-label').textContent=`Live · ${active.length} active / ${attendees.length} total`;
+    document.getElementById('refresh-btn').disabled=false;
+
+    document.getElementById('main').innerHTML=`
+      <div class="kpi-row">
+        ${kpi('Total Tickets Sold', totalTickets.toLocaleString(), 'Active registrations','🎟','a')}
+        ${kpi('Total Revenue',      cur+fmtMoney(totalRevenue),   'Net total (all records)','💰','b')}
+        ${kpi('Total VAT Collected',cur+fmtMoney(totalVAT),       'VAT across all records','🧾','c')}
+        ${kpi('Gross Total',        cur+fmtMoney(grossTotal),     'Gross across all records','📊','d')}
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">Package Breakdown</div>
+          <span class="total-badge">Active records only · ${totalTickets} total</span>
+        </div>
+        <div class="pkg-list">
+          ${pkgs.length ? pkgs.map(([name,count])=>`
+            <div class="pkg-item">
+              <span class="pkg-name" title="${name}">${name}</span>
+              <div class="bar-wrap"><div class="bar-fill" data-w="${Math.round(count/maxPkg*100)}"></div></div>
+              <span class="pkg-pct">${Math.round(count/totalTickets*100)}%</span>
+              <span class="pkg-count">${count}</span>
+            </div>`).join('')
+          : '<p style="color:var(--muted);font-size:13px;padding:12px 0">No active records found.</p>'}
+        </div>
+      </div>`;
+
+    requestAnimationFrame(()=>{
+      document.querySelectorAll('.bar-fill').forEach(el=>{ el.style.width=el.dataset.w+'%'; });
+    });
+    document.getElementById('ts').textContent='Last refreshed: '+new Date().toLocaleString();
+  }
+
+  function kpi(label,value,sub,icon,cls){
+    return `<div class="kpi ${cls}"><div class="kpi-label">${label}</div><div class="kpi-num">${value}</div><div class="kpi-sub">${sub}</div><div class="kpi-icon">${icon}</div></div>`;
+  }
+
+  function showError(msg){
+    document.getElementById('conn-dot').className='dot red';
+    document.getElementById('conn-label').textContent='Not connected';
+    document.getElementById('refresh-btn').disabled=false;
+    document.getElementById('main').innerHTML=`
+      <div id="status-area"><div class="err-box">
+        <h3>⚠ Could not reach the proxy server</h3>
+        <p>${msg}</p>
+        <div class="btn-row"><button class="btn" onclick="loadData()">↻ Retry</button></div>
+      </div></div>`;
+  }
+
+  async function loadData(){
+    document.getElementById('refresh-btn').disabled=true;
+    document.getElementById('conn-dot').className='dot red';
+    document.getElementById('conn-label').textContent='Connecting…';
+    document.getElementById('main').innerHTML=`
+      <div id="status-area">
+        <div class="spinner"></div>
+        <div class="status-msg">Fetching data from vFairs API…</div>
+        <div class="status-log" id="log-msg">This may take a moment for large datasets</div>
+      </div>`;
+    try{
+      const res=await fetch(PROXY+'/attendees');
+      if(!res.ok){ const t=await res.text(); throw new Error(`Server HTTP ${res.status}: ${t.slice(0,200)}`); }
+      const json=await res.json();
+      if(!json.success) throw new Error(json.error||'Unknown server error');
+      render(json.attendees);
+    }catch(e){
+      showError(e instanceof TypeError ? 'Could not connect to the proxy server. Make sure it is deployed and the URL in this file is correct.' : e.message);
+    }
+  }
+
+  loadData();
+</script>
+</body>
+</html>
